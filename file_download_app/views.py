@@ -24,14 +24,14 @@ def download_page(request):
         try:
             yt = YouTube(video_url)
             video_title = clean_filename(yt.title)
-            format = form.cleaned_data['format']
+            format_choice = form.cleaned_data['format']
             download_path = form.cleaned_data['download_path']
 
-            if format == 'mp4':
+            if format_choice == 'mp4':
                 stream = yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc().first()
                 if stream:
-                    if not download_path:
-                        download_path = os.path.join('downloads')
+                    home_dir = os.path.expanduser("~")
+                    download_path = os.path.join(home_dir, 'Downloads')
 
                     if not os.path.exists(download_path):
                         os.makedirs(download_path)
@@ -41,10 +41,31 @@ def download_page(request):
                     stream.download(output_path=download_path, filename=video_title_cleaned)
                     file_link = download_file_path
 
-            # Similar handling for 'mp3' format
+            elif format_choice == 'mp3':
+                audio_stream = yt.streams.filter(only_audio=True, file_extension='mp4').order_by('abr').desc().first()
+                if audio_stream:
+                    if not download_path:
+                        home_dir = os.path.expanduser("~")
+                        download_path = os.path.join(home_dir, 'Downloads')
 
+                    if not os.path.exists(download_path):
+                        os.makedirs(download_path)
+
+                    video_title_cleaned = clean_filename(video_title)
+                    download_file_path = os.path.join(download_path, f'{video_title_cleaned}.mp4')
+                    audio_stream.download(output_path=download_path, filename=video_title_cleaned)
+
+                    # Конвертация mp4 в mp3
+                    from moviepy.editor import VideoFileClip
+                    video_clip = VideoFileClip(download_file_path)
+                    audio_clip = video_clip.audio
+                    mp3_file_path = os.path.join(download_path, f'{video_title_cleaned}.mp3')
+                    audio_clip.write_audiofile(mp3_file_path)
+                    os.remove(download_file_path)  # Удаляем оригинальный mp4 файл
+
+                    file_link = mp3_file_path
         except Exception as e:
-            print(e)
+            print("Произошла ошибка:", str(e))
 
     context = {'form': form, 'video_url': video_url, 'file_link': file_link}
     return render(request, 'download.html', context)
