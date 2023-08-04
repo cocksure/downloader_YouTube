@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Загрузчик YouTube</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+<div class="container mt-5 d-flex justify-content-center">
+    <div class="container mt-5 d-flex justify-content-center">
+        {% if file_link %}
+            <p><a href="{{ file_link }}" download class="btn btn-success">Скачать файл</a></p>
+        {% endif %}
+        <div class="text-center">
+            <h1 class="mb-4">Скачать YouTube видео</h1>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="{{ form.url.id_for_label }}">Введите URL видео с YouTube</label>
+                    {{ form.url }}
+                    {{ form.url.errors }}
+                </div>
+                <div class="form-group">
+                    {#                    <label for="downloadPathPicker">Выберите папку для сохранения</label>#}
+                    {#                    <div class="input-group">#}
+                    {#                        <input type="text" class="form-control" id="downloadPathInput" name="download_path" readonly>#}
+                    {#                        <div class="input-group-append">#}
+                    {#                            <button type="button" class="btn btn-secondary" id="downloadPathPicker">Выбрать</button>#}
+                    {#                        </div>#}
+                    {#                    </div>#}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.format.id_for_label }}">Выберите формат</label>
+                    {% for format in form.format %}
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                {{ format }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                    {{ form.format.errors }}
+                </div>
+                <button class="custom-btn btn-12"><span>Нажми</span><span>Скачать</span></button>
+            </form>
+            <div class="mt-4">
+                <p id="progressText"></p>
+                <progress id="progressBar" value="0" max="100"></progress>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<script src="{% static 'js/style.js' %}"></script>
+
+
+</body>
+</html>
